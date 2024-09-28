@@ -1,0 +1,44 @@
+services:
+  project_img:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: django-ninja-project-backend:latest
+
+  project_app:
+    image: django-ninja-project-backend
+    volumes:
+      - .:/project
+    env_file:
+      - .env
+
+  postgres:
+    image: postgres:16
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+
+  project:
+    extends: project_app
+    depends_on:
+      - postgres
+    command: ./manage.py runserver 0:8000
+    ports:
+      - "8000:8000"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+    - "1025:1025"
+    - "8025:8025"
+
+  packages:
+    extends: project_app
+    volumes:
+      - .:/host
+
+volumes:
+  postgres:
